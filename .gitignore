@@ -1,0 +1,24 @@
+# Mengabaikan file dataset berukuran besar
+*.csv
+*.tsv
+*.json
+*.zip
+*.tar.gz
+*.parquet
+*.sqlite
+*.db
+
+# Mengabaikan semua file di dalam folder data (opsional, jika Anda menyimpan data di sini)
+data/raw/*
+data/cleaned/*
+
+# Pengecualian: jika Anda ingin struktur folder tetap dilacak oleh Git, Anda bisa membuat file kosong bernama .gitkeep di dalam folder tersebut dan menambahkan pengecualian ini:
+!data/raw/.gitkeep
+!data/cleaned/.gitkeep
+
+# Mengabaikan environment Python
+venv/
+env/
+.env
+__pycache__/
+*.pyc
