@@ -1,5 +1,5 @@
 # Panduan Tugas Kecerdasan Bisnis Analitik
-## Dataset: Chicago Crime (2018–2023)
+## Dataset: Chicago Crime (2021–2026)
 
 ---
 
@@ -22,8 +22,8 @@
 | **Nama** | Chicago Crime Dataset |
 | **Sumber** | [Kaggle](https://www.kaggle.com/datasets/chicago/chicago-crime) / [Chicago Data Portal](https://data.cityofchicago.org/) |
 | **Total Record Asli** | 7+ juta (2001–sekarang) |
-| **Record Setelah Filter** | ±80.000–150.000 (filter 2018–2023) |
-| **Rentang Waktu** | 2001–sekarang → **digunakan 2018–2023 (5 tahun)** |
+| **Record Setelah Filter** | ±80.000–150.000 (filter 2021–2026) |
+| **Rentang Waktu** | 2001–sekarang → **digunakan 2021–2026 (5 tahun)** |
 | **Target Klasifikasi** | `Arrest` → apakah berujung penangkapan? (True/False) |
 | **Lisensi** | Public Domain (Open Government Data) |
 
@@ -76,7 +76,7 @@ unzip chicago-crime.zip -d data/
 2. Klik **Download** → simpan sebagai `crimes.csv`
 3. Letakkan di folder `data/`
 
-### Filter Data ke 5 Tahun (2018–2023)
+### Filter Data ke 5 Tahun (2021–2026)
 
 ```python
 import pandas as pd
@@ -86,8 +86,8 @@ df['Date'] = pd.to_datetime(df['Date'], format='%m/%d/%Y %I:%M:%S %p')
 df['Year'] = df['Date'].dt.year
 
 # Filter 5 tahun
-df_filtered = df[df['Year'].between(2018, 2023)].copy()
-df_filtered.to_csv('data/crimes_2018_2023.csv', index=False)
+df_filtered = df[df['Year'].between(2021, 2026)].copy()
+df_filtered.to_csv('data/crimes_2021_2026.csv', index=False)
 
 print(f"Total record: {len(df_filtered):,}")
 # Output: ~80.000–150.000 record
@@ -262,7 +262,7 @@ DB_PASSWORD = 'password'
 DB_HOST     = 'localhost'
 DB_PORT     = '3306'
 DB_NAME     = 'chicago_crime_db'
-CSV_PATH    = 'data/crimes_2018_2023.csv'
+CSV_PATH    = 'data/crimes_2021_2026.csv'
 CHUNK_SIZE  = 5000
 
 engine = create_engine(
@@ -697,8 +697,8 @@ python app.py
 
 | No | Kriteria Tugas | Status | Bukti |
 |---|---|---|---|
-| 1 | Minimal 10.000 data/record | ✅ | ~80.000–150.000 record (filter 2018–2023) |
-| 2 | Historis transaksi minimal 5 tahun | ✅ | Data 2018, 2019, 2020, 2021, 2022, 2023 |
+| 1 | Minimal 10.000 data/record | ✅ | ~80.000–150.000 record (filter 2021–2026) |
+| 2 | Historis transaksi minimal 5 tahun | ✅ | Data 2021, 2022, 2023, 2024, 2025, 2026 |
 | 3 | Minimal 5 modul | ✅ | `dim_time`, `dim_crime_type`, `dim_location`, `dim_district`, `fact_incident` |
 | 4 | Import ke database MySQL | ✅ | Script `import_to_mysql.py` dengan SQLAlchemy |
 | 5 | Ditampilkan melalui web | ✅ | Aplikasi Flask + Bootstrap di `app.py` |
@@ -712,7 +712,7 @@ python app.py
 ```
 1. Download dataset dari Kaggle
        ↓
-2. Jalankan filter 2018–2023 (bagian 2)
+2. Jalankan filter 2021–2026 (bagian 2)
        ↓
 3. Buat database & semua tabel di MySQL (bagian 3)
        ↓
