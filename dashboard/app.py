@@ -60,7 +60,7 @@ engine = get_engine()
 def get_filter_options():
     with engine.connect() as conn:
         years = pd.read_sql("SELECT DISTINCT year FROM dim_time ORDER BY year DESC", conn)['year'].tolist()
-        crimes = pd.read_sql("SELECT primary_type FROM dim_crime_type ORDER BY primary_type", conn)['primary_type'].tolist()
+        crimes = pd.read_sql("SELECT DISTINCT primary_type FROM dim_crime_type ORDER BY primary_type", conn)['primary_type'].tolist()
         districts = pd.read_sql("SELECT district_no, district_name FROM dim_district ORDER BY district_no", conn)
     return years, crimes, districts
 
