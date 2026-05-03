@@ -4,11 +4,10 @@ import joblib
 import pandas as pd
 import os
 
-st.set_page_config(page_title="Arrest Prediction Simulation", page_icon="🤖")
-st.title("🤖 Arrest Prediction Simulation")
-st.markdown("Unggah file CSV baru untuk menyimulasikan apakah kasus kejahatan akan berujung pada **Penangkapan (Arrest)** atau tidak menggunakan model Random Forest.")
+st.set_page_config(page_title="Simulasi Prediksi Penangkapan", page_icon="🤖")
+st.title("🤖 Simulasi Prediksi Penangkapan")
+st.markdown("Masukkan detail skenario insiden kejahatan di bawah ini untuk memprediksi probabilitas pelaku ditangkap oleh pihak kepolisian Chicago.")
 
-# Karena file ini ada di dashboard/pages/, kita naik 3 level ke root
 base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 model_path = os.path.join(base_path, "models", "rf_model.pkl")
 features_path = os.path.join(base_path, "models", "model_features.pkl")
@@ -20,46 +19,85 @@ def load_model_and_features():
         features = joblib.load(features_path)
         return rf, features
     except Exception as e:
-        st.error(f"Error loading model: {e}. Pastikan Anda telah menjalankan train_rf.py")
         return None, None
 
 rf, FEATURE_COLS = load_model_and_features()
 
-uploaded = st.file_uploader("Upload Data Kasus Baru (CSV)", type="csv")
-if uploaded and rf is not None and FEATURE_COLS is not None:
-    df = pd.read_csv(uploaded)
-    st.markdown("### Data Original")
-    st.dataframe(df.head())
+if rf is None or FEATURE_COLS is None:
+    st.error("Model prediksi belum tersedia. Pastikan Anda telah melatih model.")
+    st.stop()
+
+# --- FORM INPUT ---
+with st.form("prediction_form"):
+    st.subheader("Detail Skenario Kejadian")
     
-    with st.spinner("Memproses prediksi..."):
-        # Preprocessing copy
-        df_proc = df.copy()
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Crime types based on the ones we kept during training
+        crime_options = [
+            "THEFT", "BATTERY", "CRIMINAL DAMAGE", "NARCOTICS", 
+            "OTHER OFFENSE", "ASSAULT", "DECEPTIVE PRACTICE", 
+            "ROBBERY", "MOTOR VEHICLE THEFT", "BURGLARY", "WEAPONS VIOLATION", "Other"
+        ]
+        selected_crime = st.selectbox("Jenis Kejahatan (Primary Type)", crime_options)
+        selected_hour = st.slider("Jam Kejadian (0 - 23)", 0, 23, 12, format="%d:00")
+        selected_month = st.selectbox("Bulan", range(1, 13), format_func=lambda x: [
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"][x-1])
         
-        if "Date" in df_proc.columns:
-            df_proc["Date"] = pd.to_datetime(df_proc["Date"], errors='coerce')
-            df_proc["Hour"] = df_proc["Date"].dt.hour
-            df_proc["Month"] = df_proc["Date"].dt.month
-            
-        if "Domestic" in df_proc.columns:
-            df_proc["Domestic"] = df_proc["Domestic"].map({True:1, False:0, 'Y':1, 'N':0}).fillna(0).astype(int)
-            
-        if "Primary Type" in df_proc.columns:
-            df_encoded = pd.get_dummies(df_proc, columns=["Primary Type"])
-        else:
-            df_encoded = df_proc.copy()
-            
-        # Reindex to match the training features exactly
-        X_pred_df = df_encoded.reindex(columns=FEATURE_COLS, fill_value=0)
-        X_pred_df = X_pred_df.fillna(0)
-        X = X_pred_df.values
+    with col2:
+        selected_district = st.number_input("Distrik (District No)", min_value=1, max_value=31, value=1)
+        selected_ward = st.number_input("Ward", min_value=1, max_value=50, value=1)
+        selected_community = st.number_input("Community Area", min_value=1, max_value=77, value=1)
+        is_domestic = st.radio("Apakah Tergolong Kasus Domestik?", ["Tidak", "Ya"])
+
+    submit_button = st.form_submit_button("Prediksi Kemungkinan Penangkapan", type="primary")
+
+if submit_button:
+    # 1. Buat single row DataFrame berdasarkan input user
+    input_data = {
+        "Hour": [selected_hour],
+        "Month": [selected_month],
+        "District": [selected_district],
+        "Ward": [selected_ward],
+        "Community Area": [selected_community],
+        "Domestic": [1 if is_domestic == "Ya" else 0],
+        "Primary Type": [selected_crime]
+    }
+    
+    df_input = pd.DataFrame(input_data)
+    
+    # 2. Lakukan One-Hot Encoding pada 'Primary Type'
+    df_encoded = pd.get_dummies(df_input, columns=["Primary Type"])
+    
+    # 3. Sesuaikan dengan urutan kolom model latih
+    X_pred_df = df_encoded.reindex(columns=FEATURE_COLS, fill_value=0)
+    X = X_pred_df.values
+    
+    # 4. Prediksi
+    prob_arrest = rf.predict_proba(X)[0][1] * 100
+    
+    # 5. Tampilkan Hasil yang Cantik
+    st.markdown("---")
+    st.subheader("🎯 Hasil Prediksi")
+    
+    if prob_arrest >= 75:
+        color = "#28a745" # Green
+        conclusion = "Sangat Memungkinkan Tertangkap (Arrest Very Likely)"
+    elif prob_arrest >= 50:
+        color = "#17a2b8" # Blue
+        conclusion = "Kemungkinan Besar Tertangkap (Arrest Likely)"
+    elif prob_arrest >= 25:
+        color = "#ffc107" # Yellow
+        conclusion = "Kemungkinan Kecil Tertangkap (Arrest Unlikely)"
+    else:
+        color = "#dc3545" # Red
+        conclusion = "Sangat Sulit Tertangkap (Arrest Very Unlikely)"
         
-        # Predict
-        probs = rf.predict_proba(X)[:, 1]
-        preds = rf.predict(X)
-        
-        df["Probabilitas Penangkapan (%)"] = (probs * 100).round(2)
-        df["Prediksi Arrest"] = ["Ya (Tertangkap)" if p == 1 else "Tidak" for p in preds]
-        
-    st.success("✅ Prediksi Berhasil!")
-    st.markdown("### Hasil Prediksi")
-    st.dataframe(df[["Case Number", "Primary Type", "Probabilitas Penangkapan (%)", "Prediksi Arrest"]] if "Case Number" in df.columns else df)
+    st.markdown(f"""
+    <div style="background-color: #1e2130; padding: 20px; border-radius: 10px; border-left: 5px solid {color}; margin-top:10px;">
+        <h2 style="color:{color}; margin-top:0;">{conclusion}</h2>
+        <p style="font-size:18px; margin-bottom:0;">Probabilitas Kepolisian Menangkap Pelaku: <strong>{prob_arrest:.1f}%</strong></p>
+    </div>
+    """, unsafe_allow_html=True)
