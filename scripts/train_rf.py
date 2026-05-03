@@ -6,21 +6,21 @@ from sklearn.metrics import classification_report, confusion_matrix, roc_auc_sco
 import matplotlib.pyplot as plt
 
 # Load preprocessed train/test data (from preprocess_ml)
-data = np.load("data/cleaned/train_data.npz")
+data = np.load("data/cleaned/train_data.npz", allow_pickle=True)
 X_train = data["X"]
 y_train = data["y"]
-data = np.load("data/cleaned/test_data.npz")
+data = np.load("data/cleaned/test_data.npz", allow_pickle=True)
 X_test = data["X"]
 y_test = data["y"]
 print("Loaded training and test data.")
 
 # Initialize Random Forest with balanced class weights
 rf = RandomForestClassifier(
-    n_estimators=100,       # number of trees (increase for more accuracy)
-    max_depth=None,         # allow full depth (can set to e.g. 10 to reduce overfitting)
+    n_estimators=50,        # Dikurangi dari 100 untuk hemat RAM
+    max_depth=20,           # Batasi kedalaman agar model tidak terlalu besar
     random_state=42,
     class_weight='balanced',
-    n_jobs=-1
+    n_jobs=1                # Gunakan 1 core saja untuk menghindari overhead memori
 )
 # Train the model
 print("Training Random Forest...")

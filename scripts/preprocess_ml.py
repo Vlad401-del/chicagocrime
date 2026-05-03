@@ -17,10 +17,13 @@ USE_COLS = FEATURE_COLS + [TARGET_COL, DATE_COL]
 print("Loading data for preprocessing...")
 chunks = []
 for chunk in pd.read_csv(CSV_PATH, usecols=USE_COLS, parse_dates=[DATE_COL], 
-                         infer_datetime_format=True, low_memory=False, chunksize=200000):
+                         low_memory=False, chunksize=200000):
     chunks.append(chunk)
 df = pd.concat(chunks, ignore_index=True)
-print(f"Total records loaded: {len(df)}")
+# Sampling data untuk menghindari MemoryError (sesuaikan dengan RAM Anda)
+if len(df) > 200000:
+    df = df.sample(n=200000, random_state=42)
+print(f"Total records loaded (after sampling): {len(df)}")
 
 # Drop rows with missing target or critical features
 df = df.dropna(subset=[TARGET_COL, "District"])
