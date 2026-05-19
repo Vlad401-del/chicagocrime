@@ -11,7 +11,7 @@ Rencana ini bertujuan untuk membangun dashboard interaktif menggunakan Streamlit
 
 ### Dashboard Component
 
-#### [NEW] [app.py](file:///d:/laragon/www/chicagocrime/dashboard/app.py)
+#### [NEW] [Home.py](file:///d:/laragon/www/chicagocrime/dashboard/Home.py)
 Aplikasi utama Streamlit yang akan berisi:
 - **Sidebar Filters**: Filter berdasarkan Tahun, Jenis Kejahatan (Primary Type), dan Distrik.
 - **Key Metrics**: Total Kejahatan, Arrest Rate (%), Domestic Incident (%), dan Tren vs Bulan Lalu.
@@ -32,7 +32,7 @@ Menambahkan:
 ## Verification Plan
 
 ### Automated Tests
-- Menjalankan `streamlit run dashboard/app.py` dan memverifikasi koneksi database berhasil.
+- Menjalankan `streamlit run dashboard/Home.py` dan memverifikasi koneksi database berhasil.
 - Mencoba setiap filter di sidebar untuk memastikan data terupdate secara dinamis.
 
 ### Manual Verification

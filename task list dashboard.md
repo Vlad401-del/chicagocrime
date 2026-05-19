@@ -1,7 +1,7 @@
 # Tugas Pembuatan Dashboard Streamlit Chicago Crime
 
 - `[x]` Instal dependensi (streamlit, plotly) dan update `requirements.txt`
-- `[x]` Buat file `dashboard/app.py` dengan komponen:
+- `[x]` Buat file `dashboard/Home.py` dengan komponen:
   - `[x]` Koneksi ke database MySQL
   - `[x]` Sidebar untuk filter (Tahun, Jenis Kejahatan, Distrik)
   - `[x]` Key Metrics (Total Kejahatan, Arrest Rate, Domestic Incident)
